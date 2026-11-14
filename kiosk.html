@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Air Purifier</title>
+<style>
+  :root {
+    --bg: #f5f6f8; --card: #ffffff; --text: #1d2330; --muted: #6b7280;
+    --accent: #2563eb; --accent-text: #ffffff; --line: #e3e6ea; --danger: #b91c1c;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #0f1218; --card: #181d26; --text: #e6e9ef; --muted: #98a2b3;
+      --accent: #5b8cff; --accent-text: #0b1020; --line: #262d3a; --danger: #f87171;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #0f1218; --card: #181d26; --text: #e6e9ef; --muted: #98a2b3;
+    --accent: #5b8cff; --accent-text: #0b1020; --line: #262d3a; --danger: #f87171;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  main { max-width: 640px; margin: 0 auto; padding: 16px; }
+  header { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 12px; }
+  h1 { font-size: 22px; margin: 0; }
+  .sub { color: var(--muted); font-size: 14px; }
+  section {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 14px; margin-bottom: 12px;
+  }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 6px 0; }
+  .row + .row { border-top: 1px solid var(--line); }
+  .label { font-weight: 500; }
+  .value { color: var(--muted); font-size: 14px; }
+  button {
+    font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text);
+    border-radius: 8px; padding: 10px 14px; cursor: pointer; min-height: 44px;
+  }
+  button:disabled { opacity: .5; cursor: default; }
+  button.on { background: var(--accent); color: var(--accent-text); border-color: var(--accent); }
+  .seg { display: flex; gap: 8px; flex-wrap: wrap; }
+  .seg button { flex: 1 1 auto; }
+  .big { width: 100%; font-size: 18px; min-height: 56px; }
+  .toggle { min-width: 84px; }
+  input[type=range] { width: 100%; accent-color: var(--accent); }
+  select { font: inherit; padding: 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--card); color: var(--text); min-height: 44px; }
+  #toast {
+    position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%);
+    background: var(--text); color: var(--bg); padding: 10px 16px; border-radius: 8px;
+    opacity: 0; transition: opacity .2s; pointer-events: none; max-width: 90%; text-align: center;
+  }
+  #toast.show { opacity: 1; }
+  #toast.err { background: var(--danger); color: #fff; }
+  .slider-head { display: flex; justify-content: space-between; margin-bottom: 4px; }
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <h1 id="name">Air purifier</h1>
+    <span class="sub" id="model"></span>
+  </header>
+
+  <section>
+    <button id="power" class="big">Loading…</button>
+  </section>
+
+  <section>
+    <h2>Mode</h2>
+    <div class="seg">
+      <button data-mode="auto">Auto</button>
+      <button data-mode="sleep">Sleep</button>
+      <button data-mode="turbo">Turbo</button>
+    </div>
+    <div class="row" style="margin-top:12px">
+      <span class="label">Manual fan level</span>
+      <span class="value" id="fanvalue">–</span>
+    </div>
+    <div class="slider-head"><span class="value">1</span><span class="value">10</span></div>
+    <input type="range" id="fan" min="1" max="10" step="1" value="5">
+  </section>
+
+  <section>
+    <h2>Swing</h2>
+    <div class="slider-head"><span class="label">Angle</span><span class="value" id="swingvalue">–</span></div>
+    <input type="range" id="swing" min="0" max="350" step="10" value="0">
+    <div class="value" style="margin-top:4px">0 = off</div>
+  </section>
+
+  <section>
+    <h2>Display brightness</h2>
+    <div class="slider-head"><span class="label">Brightness</span><span class="value" id="brightvalue">–</span></div>
+    <input type="range" id="brightness" min="0" max="100" step="10" value="50">
+  </section>
+
+  <section>
+    <h2>Timer</h2>
+    <div class="row">
+      <span class="label">Auto power-off</span>
+      <select id="timer">
+        <option value="0">Off</option>
+        <option value="1">30 minutes</option>
+        <option value="13">12 hours</option>
+      </select>
+    </div>
+  </section>
+
+  <section>
+    <h2>Options</h2>
+    <div class="row"><span class="label">Child lock</span><button class="toggle" data-toggle="childlock">–</button></div>
+    <div class="row"><span class="label">Beep sound</span><button class="toggle" data-toggle="beep">–</button></div>
+    <div class="row"><span class="label">Standby sensors</span><button class="toggle" data-toggle="standby">–</button></div>
+    <div class="row"><span class="label">Auto+ smart service</span><button class="toggle" data-toggle="smart">–</button></div>
+  </section>
+
+  <section>
+    <h2>Preferred reference index</h2>
+    <div class="seg">
+      <button data-index="allergen">Indoor allergen</button>
+      <button data-index="pm25">PM2.5</button>
+      <button data-index="gas">Gas</button>
+    </div>
+  </section>
+
+  <div class="sub" style="text-align:center" id="updated"></div>
+</main>
+<div id="toast"></div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+let busy = 0;               // number of in-flight writes; pause polling while > 0
+let dragging = false;       // don't overwrite a slider the user is moving
+
+function toast(msg, err = false) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.className = "show" + (err ? " err" : "");
+  clearTimeout(toast.timer);
+  toast.timer = setTimeout(() => (t.className = ""), 2500);
+}
+
+async function api(method, path) {
+  busy++;
+  try {
+    const r = await fetch(path, { method, cache: "no-store" });
+    const body = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(body.detail || `HTTP ${r.status}`);
+    return body;
+  } catch (e) {
+    toast(String(e.message || e), true);
+    throw e;
+  } finally {
+    busy--;
+  }
+}
+
+// Run a write, then refresh the view from the device.
+async function act(path) {
+  try { await api("POST", path); } catch { return; }
+  await refresh();
+}
+
+function render(s) {
+  $("name").textContent = s.name || "Air purifier";
+  $("model").textContent = s.model || "";
+
+  const p = $("power");
+  p.textContent = s.power ? "Power: On (tap to turn off)" : "Power: Off (tap to turn on)";
+  p.className = "big " + (s.power ? "on" : "");
+  p.dataset.next = s.power ? "off" : "on";
+
+  document.querySelectorAll("[data-mode]").forEach(b =>
+    b.classList.toggle("on", b.dataset.mode === s.mode));
+
+  $("fanvalue").textContent = s.fan_level != null ? s.fan_level : "(auto/sleep/turbo)";
+  if (!dragging && s.fan_level != null) $("fan").value = s.fan_level;
+
+  if (!dragging) $("swing").value = s.swing_degrees;
+  $("swingvalue").textContent = s.swing_degrees === 0 ? "Off" : s.swing_degrees + "°";
+
+  if (!dragging) $("brightness").value = s.brightness;
+  $("brightvalue").textContent = s.brightness + "%";
+
+  $("timer").value = String(s.timer_code);
+
+  const toggles = {
+    childlock: s.child_lock,
+    beep: s.beep,
+    standby: s.standby_sensors,
+    smart: s.auto_plus,
+  };
+  document.querySelectorAll("[data-toggle]").forEach(b => {
+    const on = toggles[b.dataset.toggle];
+    b.textContent = on ? "On" : "Off";
+    b.classList.toggle("on", on);
+  });
+
+  document.querySelectorAll("[data-index]").forEach(b =>
+    b.classList.toggle("on", b.dataset.index === s.reference_index));
+
+  $("updated").textContent = "Updated " + new Date().toLocaleTimeString();
+}
+
+async function refresh() {
+  try {
+    const s = await api("GET", "/api/summary");
+    render(s);
+  } catch {
+    $("updated").textContent = "Device not reachable";
+  }
+}
+
+// ---- wiring ----
+$("power").addEventListener("click", () => act(`/api/power/${$("power").dataset.next}`));
+
+document.querySelectorAll("[data-mode]").forEach(b =>
+  b.addEventListener("click", () => act(`/api/mode/${b.dataset.mode}`)));
+
+document.querySelectorAll("[data-index]").forEach(b =>
+  b.addEventListener("click", () => act(`/api/reference-index/${b.dataset.index}`)));
+
+document.querySelectorAll("[data-toggle]").forEach(b => {
+  const routes = { childlock: "childlock", beep: "beep", standby: "standby", smart: "smart" };
+  b.addEventListener("click", () => {
+    const on = b.textContent === "Off";   // currently off -> turn on
+    act(`/api/${routes[b.dataset.toggle]}/${on ? "on" : "off"}`);
+  });
+});
+
+function slider(id, label, toRoute) {
+  const el = $(id);
+  el.addEventListener("input", () => {
+    dragging = true;
+    label(el.value);
+  });
+  el.addEventListener("change", () => {
+    dragging = false;
+    act(toRoute(el.value));
+  });
+}
+slider("fan", v => ($("fanvalue").textContent = v), v => `/api/fan/${v}`);
+slider("swing", v => ($("swingvalue").textContent = v == 0 ? "Off" : v + "°"), v => `/api/swing/${v}`);
+slider("brightness", v => ($("brightvalue").textContent = v + "%"), v => `/api/brightness/${v}`);
+
+$("timer").addEventListener("change", (e) => act(`/api/timer/${e.target.value}`));
+
+refresh();
+setInterval(() => { if (busy === 0 && !dragging) refresh(); }, 10000);
+</script>
+</body>
+</html>
